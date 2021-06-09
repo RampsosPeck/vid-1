@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUN VIDEO</title>
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js" ></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" integrity="undefined" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="undefined" crossorigin="anonymous"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Stint+Ultra+Condensed&display=swap" rel="stylesheet">
+</head>
+<body style="background:#603d7e; font-family: 'Stint Ultra Condensed', cursive;">
+    <div class="container text-center">
+
+        <div class="col-md-12 text-center mt-4"   >
+            <h1 class="text-white">STREAMING SERVER</h1>
+        </div> 
+        <video src="" id="video" style="width:680px;height:320px;" autoplay="true"></video>
+
+        <canvas   id="preview"></canvas>
+        
+        <div id="logger"> </div> 
+ 
+    </div>  
+
+    <script type="text/javascript">
+        var canvas = document.getElementById("preview");
+        var context = canvas.getContext("2d");
+        
+        canvas.width = 800;
+        canvas.height = 600;
+
+        context.width = canvas.width;
+        context.height = canvas.height;
+
+        var video = document.getElementById("video");
+
+        var socket = io();
+
+        function logger(msg){
+            $("#logger").text(msg);
+        }
+
+        function loadCam(stream){
+  
+
+            /*video.srcObject=stream;
+            video.play();*/
+            
+            video.srcObject = new MediaStream(stream);
+            video.play();
+
+            logger('Camara cargada correctamente [ok]');
+        }
+
+        function loadFail(){
+            logger('Camara no conectada, please');
+        }
+
+        function viewVideo(video,context){
+            context.drawImage(video,0,0,context.width,context.height);
+
+            //Para que se emita en el servidor
+            socket.emit('stream',canvas.toDataURL('image/webp'));            
+        }
+
+        $(function(){
+            navigator.getUserMedia = ( navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia );
+
+            if(navigator.getUserMedia){
+                navigator.getUserMedia({video:true},loadCam, loadFail);
+            }
+
+            setInterval(function(){
+                viewVideo(video,context);
+            },70);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
